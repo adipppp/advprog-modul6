@@ -49,3 +49,8 @@ Pada snippet kode tersebut, terlihat bahwa terdapat duplikasi di beberapa tempat
 Berikut image yang menunjukkan response dari GET request ke <a>http://127.0.0.1:7878/bad</a>:
 
 ![Commit 3 screen capture](assets/commit3.png)
+
+## Reflection 4
+Saat sebuah request masuk, program menerima dan memproses request tersebut menggunakan salah satu thread yang tersedia. Jika seluruh thread sibuk, program tidak dapat menerima request sebab tidak ada thread yang dapat memproses request tersebut.
+
+Jika kita lihat di `src/main.rs`, program kita hanya menggunakan satu thread saja, yaitu thread utama (main thread) program. Karena satu-satunya thread pada program hanya bisa digunakan untuk memproses sebuah request, program tidak dapat menerima request lain selama proses tersebut berlangsung. Alhasil, mengirimkan request ke "/sleep" tepat sebelum mengirimkan request ke endpoint "/" membuat request kedua tersebut tertunda, menunggu request pertama selesai menerima response.
