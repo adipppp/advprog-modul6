@@ -1,4 +1,5 @@
 use std::{
+    fmt,
     sync::{mpsc, Arc, Mutex},
     thread
 };
@@ -24,12 +25,42 @@ impl Worker {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct PoolCreationError {
+    message: String,
+}
+
+impl fmt::Display for PoolCreationError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.message)
+    }
+}
+
 pub struct ThreadPool {
     workers: Vec<Worker>,
     sender: mpsc::Sender<Job>,
 }
 
 impl ThreadPool {
+    pub fn build(size: usize) -> Result<ThreadPool, PoolCreationError> {
+        if size == 0 {
+            let message = "Pool size can't be zero".to_string();
+            return Err(PoolCreationError { message });
+        }
+
+        let (sender, receiver) = mpsc::channel();
+
+        let receiver = Arc::new(Mutex::new(receiver));
+
+        let mut workers = Vec::with_capacity(size);
+
+        for id in 0..size {
+            workers.push(Worker::new(id, Arc::clone(&receiver)))
+        }
+
+        Ok(ThreadPool { workers, sender })
+    }
+
     /// Create a new ThreadPool.
     ///
     /// The size is the number of threads in the pool.
